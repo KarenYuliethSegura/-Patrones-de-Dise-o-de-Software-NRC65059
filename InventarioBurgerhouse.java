@@ -13,6 +13,8 @@ import inventario.burgerhouse.decorator.*;
 import inventario.burgerhouse.adapter.*;
 import inventario.burgerhouse.bridge.*;
 import inventario.burgerhouse.facade.*;
+import inventario.burgerhouse.strategy.*;
+import inventario.burgerhouse.domain.Lote;
 import inventario.burgerhouse.singleton.GestorInventario;
 import inventario.burgerhouse.singleton.StockInsuficienteException;
 
@@ -344,6 +346,39 @@ public class InventarioBurgerhouse {
 
         //- Confirmacion final del Facade
         System.out.println("Facade OK");
+        
+        System.out.println("Run Strategy");
+
+        //- Inicializa el selector de lotes con politica por defecto (PEPS)
+        SelectorLotes selector = new SelectorLotes();
+
+        //- Usa un producto que tenga varios lotes registrados
+        String productoId = "F-010";
+
+        //- PEPS: selecciona el lote con la fecha de entrada mas antigua
+        System.out.println("Usando politica PEPS");
+        Lote lotePEPS = selector.seleccionarParaProducto(productoId);
+        if (lotePEPS != null) {
+            System.out.println("Lote seleccionado (PEPS): " + lotePEPS.getId() + " | Fecha ingreso: " + lotePEPS.getDate_entry());
+        } else {
+            System.out.println("No se encontraron lotes activos para el producto");
+        }
+
+        //- Cambia a FEFO y selecciona segun fecha de vencimiento
+        selector.setPolitica(new PoliticaFEFO());
+        System.out.println("Usando politica FEFO");
+        Lote loteFEFO = selector.seleccionarParaProducto(productoId);
+        if (loteFEFO != null) {
+            System.out.println("Lote seleccionado (FEFO): " + loteFEFO.getId() + " | Fecha vencimiento: " + loteFEFO.getDate_exp());
+        } else {
+            System.out.println("No se encontraron lotes activos para el producto.");
+        }
+
+        //- Validacion simple de cambio de estrategia
+        assertTrue(!lotePEPS.getId().equals(loteFEFO.getId()),
+            "Las politicas PEPS y FEFO deben poder seleccionar lotes distintos cuando las fechas difieren");
+
+        System.out.println("OK: las politicas de consumo funcionan correctamente.");
 
         //- TEST builder debe fallar
         try {
