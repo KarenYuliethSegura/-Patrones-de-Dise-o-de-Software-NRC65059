@@ -14,6 +14,7 @@ import inventario.burgerhouse.adapter.*;
 import inventario.burgerhouse.bridge.*;
 import inventario.burgerhouse.facade.*;
 import inventario.burgerhouse.strategy.*;
+import inventario.burgerhouse.command.*;
 import inventario.burgerhouse.domain.Lote;
 import inventario.burgerhouse.singleton.GestorInventario;
 import inventario.burgerhouse.singleton.StockInsuficienteException;
@@ -23,6 +24,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 
 public class InventarioBurgerhouse {
 
@@ -300,6 +303,34 @@ public class InventarioBurgerhouse {
 
         //- Resumen final
         System.out.println("OK: Abstraccion y Formato desacoplados, cambio en runtime, combinaciones cruzadas y extensibilidad.");
+        
+        System.out.println("run command");
+
+        GestorInventario gestor = GestorInventario.getInstance();
+        OperadorInventario operador = new OperadorInventario();
+
+        //- Comandos de ejemplo
+        InventarioCommand entrada1 = new EntradaCommand(
+            gestor, "C-L1", "F-050", LocalDate.now().minusDays(1), LocalDate.now().plusDays(15), 5
+        );
+        InventarioCommand entrada2 = new EntradaCommand(
+            gestor, "C-L2", "F-050", LocalDate.now(), LocalDate.now().plusDays(25), 10
+        );
+        InventarioCommand salida1 = new SalidaCommand(
+            gestor, "F-050", 7
+        );
+
+        //- Ejecutar en lote con el invocador
+        operador.ejecutarTodos(Arrays.asList(entrada1, entrada2, salida1));
+
+        //- Verificacion basica
+        int stockF050 = gestor.consultar_stock("F-050");
+        System.out.println("Stock F-050 tras comandos: " + stockF050 + " unidades");
+        assertTrue(stockF050 >= 0, "El stock no debe ser negativo");
+
+        //- Auditoria simple
+        System.out.println("Historial de comandos: " + operador.getHistorial());
+        System.out.println("Command OK");
         
         System.out.println("Run Facade");
 
