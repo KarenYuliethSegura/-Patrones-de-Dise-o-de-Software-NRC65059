@@ -1,25 +1,164 @@
-📦 Inventario Burgerhouse
+# 🍔 Inventario Burgerhouse
 
-Proyecto académico en Java que implementa un sistema de inventario para una hamburguesería ficticia, aplicando patrones de diseño:
+Sistema de gestión de inventario para hamburguesería desarrollado en Java, implementando múltiples patrones de diseño de software como proyecto académico.
 
-Singleton → GestorInventario
+---
 
-Builder → construcción paso a paso de productos
+## 📑 Tabla de Contenidos
 
-Prototype → clonación de productos
+- [Características](#-características)
+- [Patrones de Diseño](#-patrones-de-diseño-implementados)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Requisitos](#-requisitos)
+- [Instalación y Ejecución](#-instalación-y-ejecución)
+- [Uso](#-uso)
+- [Pruebas](#-pruebas)
 
-Abstract Factory → creación de familias de productos por categoría
+---
 
-🚀 Estructura del proyecto
-inventario.burgerhouse
-├── builder/
+## ✨ Características
+
+- **Gestión centralizada de inventario** con instancia única (Singleton)
+- **Política PEPS (FIFO)** para consumo de lotes
+- **Control automático de vencimientos** de productos
+- **Sistema de alertas** configurable con observadores
+- **Construcción flexible** de productos con validación
+- **Reportes en múltiples formatos** (Consola, JSON)
+- **Integración con proveedores externos** mediante adaptadores
+- **Historial de operaciones** con soporte para deshacer acciones
+
+---
+
+## 🎯 Patrones de Diseño Implementados
+
+### Patrones Creacionales
+
+#### 🔹 Singleton
+**Clase:** `GestorInventario`
+- Garantiza una única instancia global del gestor de inventario
+- Implementa política PEPS (FIFO) en el consumo de lotes
+- Ignora automáticamente lotes vencidos
+- Lanza excepciones controladas ante stock insuficiente
+
+#### 🔹 Builder
+**Clases:** `BebidaBuilder`, `ProductoFrescoBuilder`, `ProductoConservaBuilder`, `ProductoPanaderiaBuilder`
+- Construcción paso a paso de productos
+- Validación de campos obligatorios
+- Soporte para atributos opcionales (temperatura, presentación, etc.)
+
+**Ejemplo de uso:**
+```java
+Bebida cola = new BebidaBuilder()
+    .id("B-001")
+    .name("Cola 350ml")
+    .price(3500)
+    .unit("botella")
+    .attribute("azucar", "media")
+    .build();
+```
+
+#### 🔹 Prototype
+**Clase:** `Producto`
+- Implementa `clone()` para crear copias independientes
+- Deep copy de atributos del producto
+- Permite duplicar productos sin afectar los originales
+
+#### 🔹 Abstract Factory
+**Clases:** `AbstractCategoriaFactory`, `CategoriaFactoryProvider`
+- Crea familias de productos por categoría (Bebidas, Frescos, Conservas, Panadería)
+- Garantiza consistencia en la creación de productos relacionados
+
+**Ejemplo de uso:**
+```java
+AbstractCategoriaFactory fabrica = CategoriaFactoryProvider.getFactory(Categoria.BEBIDAS);
+Producto agua = fabrica.crearProducto("B-002", "Agua 600ml", 2200, "botella");
+```
+
+---
+
+### Patrones Estructurales
+
+#### 🔹 Adapter
+**Clases:** `CarnesPremiumAdapter`, `VerdurasFrescasAdapter`
+- Integra proveedores externos con formatos distintos
+- Convierte interfaces incompatibles a `ProveedorStandard`
+
+#### 🔹 Bridge
+**Clases:** `FormatoConsola`, `FormatoJSON`, `FormatoReporte`
+- Separa la lógica de formato de salida del contenido del reporte
+- Permite cambiar el formato sin modificar los reportes
+
+#### 🔹 Decorator
+**Clases:** `ExtraQueso`, `ExtraTocineta`, `ExtraJalapenos`
+- Añade ingredientes extra a productos dinámicamente
+- No modifica la estructura base del producto
+
+#### 🔹 Facade
+**Clase:** `SistemaInventarioFacade`
+- Simplifica la interacción con múltiples subsistemas
+- Ofrece una interfaz unificada para gestión, reportes y políticas
+
+---
+
+### Patrones de Comportamiento
+
+#### 🔹 Command
+**Clases:** `EntradaCommand`, `SalidaCommand`, `InventarioCommand`
+- Encapsula operaciones de inventario como objetos
+- Facilita deshacer operaciones
+- Mantiene historial de acciones ejecutadas
+
+#### 🔹 Observer
+**Clases:** `AlertaInventarioSubject`, `AlertaConsolaObserver`, `AlertaCapturadoraObserver`
+- Sistema de alertas de inventario
+- Notificación automática a observadores ante cambios
+- Desacoplamiento entre sujeto y observadores
+
+#### 🔹 Strategy
+**Clases:** `PoliticaPEPS`, `PoliticaFEFO`, `PoliticaConsumo`
+- Selección dinámica de política de consumo de lotes
+- Intercambio de algoritmos en tiempo de ejecución
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+inventario.burgerhouse/
+│
+├── adapter/                    # Integración con proveedores externos
+│   ├── CarnesPremiumAdapter.java
+│   ├── VerdurasFrescasAdapter.java
+│   ├── ProveedorStandard.java
+│   └── ProveedorCarnesPremium.java
+│
+├── bridge/                     # Formatos de reportes
+│   ├── FormatoConsola.java
+│   ├── FormatoJSON.java
+│   ├── FormatoReporte.java
+│   ├── ReporteInventario.java
+│   └── ReporteVencimientos.java
+│
+├── builder/                    # Construcción de productos
 │   ├── ProductoBuilder.java
 │   ├── BebidaBuilder.java
 │   ├── ProductoFrescoBuilder.java
 │   ├── ProductoConservaBuilder.java
 │   └── ProductoPanaderiaBuilder.java
 │
-├── domain/
+├── command/                    # Operaciones de inventario
+│   ├── EntradaCommand.java
+│   ├── SalidaCommand.java
+│   ├── InventarioCommand.java
+│   └── OperadorInventario.java
+│
+├── decorator/                  # Ingredientes extra
+│   ├── ProductoDecorator.java
+│   ├── ExtraQueso.java
+│   ├── ExtraTocineta.java
+│   └── ExtraJalapenos.java
+│
+├── domain/                     # Modelos de dominio
 │   ├── Producto.java
 │   ├── Bebida.java
 │   ├── ProductoFresco.java
@@ -28,7 +167,7 @@ inventario.burgerhouse
 │   ├── Lote.java
 │   └── Categoria.java
 │
-├── factory/
+├── factory/                    # Fábricas de productos
 │   ├── AbstractCategoriaFactory.java
 │   ├── FabricaBebidas.java
 │   ├── FabricaFrescos.java
@@ -36,95 +175,142 @@ inventario.burgerhouse
 │   ├── FabricaPanaderia.java
 │   └── CategoriaFactoryProvider.java
 │
-├── singleton/
+├── observer/                   # Sistema de alertas
+│   ├── AlertaInventarioSubject.java
+│   ├── AlertaInventarioObserver.java
+│   ├── AlertaConsolaObserver.java
+│   └── AlertaCapturadoraObserver.java
+│
+├── strategy/                   # Políticas de consumo
+│   ├── SelectorLotes.java
+│   ├── PoliticaPEPS.java
+│   ├── PoliticaFEFO.java
+│   └── PoliticaConsumo.java
+│
+├── singleton/                  # Gestión centralizada
 │   ├── GestorInventario.java
+│   ├── AuditorInventario.java
 │   ├── ProductoNoEncontradoException.java
 │   └── StockInsuficienteException.java
 │
-└── main/
+├── facade/                     # Interfaz simplificada
+│   └── SistemaInventarioFacade.java
+│
+└── main/                       # Punto de entrada
     └── InventarioBurgerhouse.java
+```
 
-⚙️ Requisitos
+---
 
-Java 17+ (puede correr en Java 11, pero se recomienda >=17).
+## 🔧 Requisitos
 
-IDE como NetBeans, IntelliJ o Eclipse, o consola con javac/java.
+- **Java 17** o superior (recomendado)
+- IDE compatible: NetBeans, IntelliJ IDEA, Eclipse o VS Code
+- Alternativamente: `javac` y `java` desde línea de comandos
 
-▶️ Ejecución
+---
 
-Compila y ejecuta desde consola:
+## 🚀 Instalación y Ejecución
 
+### Compilación desde consola
+
+```bash
+# Compilar todos los archivos Java
 javac -d out $(find src -name "*.java")
+
+# Ejecutar el programa
 java -cp out inventario.burgerhouse.main.InventarioBurgerhouse
+```
 
+### Ejecución desde IDE
 
-Salida esperada (resumen):
+1. Importar el proyecto en tu IDE preferido
+2. Configurar JDK 17 o superior
+3. Ejecutar la clase `InventarioBurgerhouse.java`
 
-=== DEMO Burgerhouse ===
-Stock Gaseosa (B-001) inicial: 12
-Stock Lechuga (F-010) inicial: 6
-Lotes activos B-001 (post PEPS): [L2]
-OK esperado: Stock insuficiente (no vencido) para F-010. Faltante: 1
-OK Builder: validación de campos obligatorios.
-Resumen stock no vencido: {B-001=6, F-010=6}
-=== FIN DEMO ===
+---
 
-📌 Patrones implementados
-🔒 Singleton – GestorInventario
+## 💡 Uso
 
-Única instancia para administrar el inventario.
+### Ejemplo básico
 
-Aplica PEPS (FIFO) en consumo de lotes.
+```java
+// Obtener instancia única del gestor
+GestorInventario gestor = GestorInventario.getInstance();
 
-Ignora lotes vencidos.
-
-Lanza excepciones controladas si no hay stock suficiente.
-
-🛠️ Builder
-
-Construcción paso a paso de productos.
-
-Valida campos obligatorios (id, name, unit, price).
-
-Permite atributos opcionales (atributos como temperatura, presentación, etc.).
-
-Ejemplo:
-
+// Crear producto usando Builder
 Bebida cola = new BebidaBuilder()
     .id("B-001")
     .name("Cola 350ml")
     .price(3500)
     .unit("botella")
-    .attribute("azucar", "media")
     .build();
 
-🧬 Prototype
+// Registrar entrada de lote
+gestor.registrarEntrada("B-001", cantidad, fechaVencimiento);
 
-Los productos (Producto) implementan clone().
+// Consumir stock (aplica PEPS automáticamente)
+gestor.consumirStock("B-001", cantidad);
 
-El clon genera un nuevo mapa de atributos, garantizando independencia (deep copy).
+// Consultar stock disponible
+int stockDisponible = gestor.consultarStock("B-001");
+```
 
-🏭 Abstract Factory
+### Uso de Facade
 
-Fábricas concretas para cada categoría (FabricaBebidas, FabricaFrescos, etc.).
+```java
+// Interfaz simplificada del sistema
+SistemaInventarioFacade sistema = new SistemaInventarioFacade();
+sistema.registrarProducto(producto);
+sistema.registrarEntrada(idProducto, cantidad, fechaVencimiento);
+sistema.generarReporte("JSON");
+```
 
-Centralizadas en CategoriaFactoryProvider.
+---
 
-Permiten crear familias de productos con atributos consistentes.
+## 🧪 Pruebas
 
-Ejemplo:
+El programa incluye casos de prueba integrados en el método `main`:
 
-AbstractCategoriaFactory fabrica = CategoriaFactoryProvider.getFactory(Categoria.BEBIDAS);
-Producto agua = fabrica.crearProducto("B-002", "Agua 600ml", 2200, "botella");
+### Salida esperada
 
-✅ Pruebas de integración (incluidas en main)
+```yaml
+=== DEMO Burgerhouse ===
 
-PEPS: consumir 6 unidades de gaseosa (5 del lote más antiguo + 1 del siguiente).
+✓ Stock Gaseosa (B-001) inicial: 12
+✓ Stock Lechuga (F-010) inicial: 6
+✓ Lotes activos B-001 (post PEPS): [L2]
+✓ Stock insuficiente (no vencido) para F-010. Faltante: 1
+✓ Builder: validación de campos obligatorios
+✓ Resumen stock no vencido: {B-001=6, F-010=6}
 
-Ignorar vencidos: el stock de lechugas cuenta solo las vigentes.
+=== FIN DEMO ===
+```
 
-Prototype: clonación de productos no comparte atributos con el original.
+### Casos de prueba cubiertos
 
-Builder: falla si falta un campo obligatorio.
+| Prueba | Descripción |
+|--------|-------------|
+| **PEPS** | Consumo de 6 unidades de gaseosa (5 del lote más antiguo + 1 del siguiente) |
+| **Vencimientos** | El stock de lechugas cuenta solo los lotes vigentes |
+| **Prototype** | Clonación de productos crea copias independientes |
+| **Builder** | Validación de campos obligatorios (falla si falta alguno) |
+| **Resumen** | Muestra inventario total no vencido por producto |
 
-Resumen de stock: muestra inventario total no vencido por producto.
+---
+
+## 📝 Licencia
+
+Proyecto académico desarrollado con fines educativos.
+
+---
+
+## 👥 Autores
+
+Desarrollado como proyecto de patrones de diseño en Java.
+
+---
+
+## 🤝 Contribuciones
+
+Este es un proyecto académico. Las sugerencias y mejoras son bienvenidas a través de issues o pull requests.
