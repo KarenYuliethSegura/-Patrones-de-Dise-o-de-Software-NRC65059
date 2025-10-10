@@ -12,6 +12,7 @@ import inventario.burgerhouse.observer.*;
 import inventario.burgerhouse.decorator.*;
 import inventario.burgerhouse.adapter.*;
 import inventario.burgerhouse.bridge.*;
+import inventario.burgerhouse.facade.*;
 import inventario.burgerhouse.singleton.GestorInventario;
 import inventario.burgerhouse.singleton.StockInsuficienteException;
 
@@ -297,6 +298,52 @@ public class InventarioBurgerhouse {
 
         //- Resumen final
         System.out.println("OK: Abstraccion y Formato desacoplados, cambio en runtime, combinaciones cruzadas y extensibilidad.");
+        
+        System.out.println("Run Facade");
+
+        //- Instancia del Facade
+        SistemaInventarioFacade sistema = new SistemaInventarioFacade();
+
+        //-Registro simple de productos
+        System.out.println("Registro simple de productos");
+        sistema.registrarProductoNuevo(
+            "F-300", "Tomate Fresco", 3000, "kg", Categoria.FRESCOS, 20, LocalDate.now().plusMonths(1)
+        );
+        sistema.registrarProductoNuevo(
+            "B-300", "Jugo Natural", 5000, "litro", Categoria.BEBIDAS, 15, LocalDate.now().plusMonths(6)
+        );
+
+        //- Verificacion rapida de stock
+        int stockTomate = sistema.consultarStock("F-300");
+        System.out.println("Stock F-300: " + stockTomate + " unidades");
+        assertTrue(stockTomate == 20, "El stock de F-300 debe ser 20");
+
+        //- Importacion desde proveedor externo (usa Adapter internamente)
+        System.out.println("Importacion desde proveedor de carnes");
+        ProveedorCarnesPremium proveedorCarnes = new ProveedorCarnesPremium(
+            "CP-300", "Carne Premium 1kg", 12000, "kg", 30, "20/12/2025"
+        );
+        sistema.importarDesdeProveedorCarnes(proveedorCarnes);
+
+        //- Sistema de alertas (usa Observer y reglas del Auditor)
+        System.out.println("Verificacion de alertas");
+        sistema.verificarAlertas();
+
+        //- Reportes (usa Bridge internamente)
+        System.out.println("Generacion de reportes");
+        sistema.generarReporteInventario();
+        sistema.generarReporteVencimientos(7);
+
+        //- Flujo completo de cierre diario
+        System.out.println("Ejecucion de cierre diario");
+        sistema.ejecutarCierreDiario();
+
+        //- Estadisticas generales
+        System.out.println("Estadísticas del sistema");
+        sistema.imprimirEstadisticas();
+
+        //- Confirmacion final del Facade
+        System.out.println("Facade OK");
 
         //- TEST builder debe fallar
         try {
