@@ -308,6 +308,8 @@ Proyecto académico desarrollado con fines educativos.
 ## 👥 Autores
 
 Desarrollado como proyecto de patrones de diseño en Java.
+Karen Yulieth Segura Gomez
+Mauricio Martinez Ortega
 
 ---
 
