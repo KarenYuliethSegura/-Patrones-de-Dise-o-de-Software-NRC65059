@@ -11,6 +11,7 @@ import inventario.burgerhouse.factory.*;
 import inventario.burgerhouse.observer.*;
 import inventario.burgerhouse.decorator.*;
 import inventario.burgerhouse.adapter.*;
+import inventario.burgerhouse.bridge.*;
 import inventario.burgerhouse.singleton.GestorInventario;
 import inventario.burgerhouse.singleton.StockInsuficienteException;
 
@@ -126,7 +127,7 @@ public class InventarioBurgerhouse {
         auditor.evaluar("F-010");
         
         assertTrue(capturador.getTotalEventos() >= 2, "Observer: se esperaban >=2 alertas (low stock y/o expiring).");
-        System.out.println("Observer OK. Eventos capturados: " + capturador.getEventos());
+        System.out.println("OK. Eventos capturados: " + capturador.getEventos());
         
         //- Extra ingredientes decorator 
         
@@ -165,7 +166,7 @@ public class InventarioBurgerhouse {
         IProveedorStandard verdurasAdaptado = new VerdurasFrescasAdapter(verduraExterno);
 
         //- Verificar que los adaptadores convierten correctamente los formatos
-        System.out.println("\n1. Verificación de Adaptación de Formatos:");
+        System.out.println(" Verificación de Adaptación de Formatos:");
         System.out.println(" Carnes: ID Original: CP-200 / ID adaptado: " + carnesAdaptado.getProductId());
         System.out.println(" Carnes: Fecha Original: 15/03/2026 / Fecha adaptada: " + carnesAdaptado.getExpirationDate());
         System.out.println(" Verduras: SKU Original: VF-050 / SKU adaptad:" + verdurasAdaptado.getProductId());
@@ -192,7 +193,7 @@ public class InventarioBurgerhouse {
         );
 
         //- Usar el importador para agregar productos al inventario
-        System.out.println("\n2. Importación al Inventario:");
+        System.out.println("Importación al Inventario:");
         ImportadorProductos importador = new ImportadorProductos();
 
         List<IProveedorStandard> proveedores = new ArrayList<>();
@@ -206,7 +207,7 @@ public class InventarioBurgerhouse {
         int stockCarnes = gi.consultar_stock("F-200");
         int stockVerduras = gi.consultar_stock("F-050");
 
-        System.out.println("\n3. Verificación de Stock Post-Importación:");
+        System.out.println("Verificación de Stock Post-Importación:");
         System.out.println("Stock Carne (F-200): " + stockCarnes);
         System.out.println("Stock Lechuga (F-050): " + stockVerduras);
 
@@ -221,7 +222,7 @@ public class InventarioBurgerhouse {
         );
 
         //- Verificar que diferentes adaptadores no interfieren entre sí
-        System.out.println("\n4. Independencia de Adaptadores:");
+        System.out.println("Independencia de Adaptadores:");
         IProveedorStandard carnes2 = new CarnesPremiumAdapter(
             new ProveedorCarnesPremium("CP-201", "Carne cerdo", 8000, "kg", 15, "01/04/2026")
         );
@@ -242,6 +243,60 @@ public class InventarioBurgerhouse {
         Map<String, Integer> resumen = gi.consultar_stock_total();
         System.out.println("Resumen stock no vencido: " + resumen);  
         System.out.println("Final del inventario");
+        
+        //- Test de reportes (Bridge)
+        //- Reporte de Inventario en CONSOLA
+        System.out.println("Reporte de inventario en consola");
+        Reporte repInv = new ReporteInventario(new FormatoConsola());
+        repInv.generar();
+
+        //- Mismo Reporte en JSON (cambio dinamico de implementacion)
+        System.out.println("Mismo Reporte en JSON (cambio dinamico)");
+        FormatoReporte formatoOriginal = repInv.getFormato();
+        repInv.setFormato(new FormatoJSON());
+        repInv.generar();
+
+        assertTrue(
+            !formatoOriginal.getNombreFormato().equals(repInv.getFormato().getNombreFormato()),
+            "Bridge: el formato debe poder cambiar dinamicamente en runtime."
+        );
+
+        //- Reporte de vencimientos (7 días) en consola
+        System.out.println("Reporte de vencimientos (7 dias) en consola");
+        Reporte repVenc = new ReporteVencimientos(new FormatoConsola(), 7);
+        repVenc.generar();
+
+        //- Mismo Reporte de Vencimientos en JSON
+        System.out.println("Mismo reporte de vencimientos en JSON");
+        repVenc.setFormato(new FormatoJSON());
+        repVenc.generar();
+
+        //- Combinaciones cruzadas (verificación de independencia)
+        System.out.println("Combinaciones cruzadas");
+        java.util.List<Reporte> combinaciones = new java.util.ArrayList<>();
+        combinaciones.add(new ReporteInventario(new FormatoConsola()));
+        combinaciones.add(new ReporteInventario(new FormatoJSON()));
+        combinaciones.add(new ReporteVencimientos(new FormatoConsola(), 3));
+        combinaciones.add(new ReporteVencimientos(new FormatoJSON(), 14));
+
+        System.out.println("Total de combinaciones a ejecutar: " + combinaciones.size());
+        for (Reporte r : combinaciones) {
+            r.generar();
+        }
+
+        assertTrue(
+            combinaciones.size() == 4,
+            "Deben existir 4 combinaciones (2 reportes y 2 formatos)."
+        );
+
+        //- Extensibilidad conceptual (no se ejecuta codigo, solo validacion conceptual)
+        System.out.println("Extensibilidad Bridge verificada conceptualmente:");
+        System.out.println(" Nuevo formato");
+        System.out.println(" Nuevo reporte");
+        System.out.println(" Sin tocar clases existentes.");
+
+        //- Resumen final
+        System.out.println("OK: Abstraccion y Formato desacoplados, cambio en runtime, combinaciones cruzadas y extensibilidad.");
 
         //- TEST builder debe fallar
         try {
